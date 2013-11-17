@@ -4,10 +4,22 @@
 from re import sub
 from urllib import urlopen
 from collections import Counter
+import urllib
+import json
+
+def fetch(url):
+    json_data = urllib.urlopen(url)
+    data = json.load(json_data)
+    json_data.close()
+    return data
 
 def makelist(f = open('songs.txt', 'r')):
-	a = [line for line in f]
-	return Counter(a) - Counter(set(a)),len(Counter(set(a)))
+	s = raw_input("Type 1 to match on URL and 0 to match on title: ")
+	if s=="1":
+		a = [line for line in f]
+	elif s=="0":
+		a = [fetch("http://ws.spotify.com/lookup/1/.json?uri=" + line)["track"]["name"] for line in f]
+	return Counter(a) - Counter(set(a)),len(Counter(set(a))),s
 
 def urltitle(url):
    f = urlopen(url).read()
@@ -23,7 +35,10 @@ def charfix(string):
 
 l=makelist()
 
-titles = [urltitle(track) for track in l[0]]
+if l[2]=="1":
+	titles = [urltitle(track) for track in l[0]]
+elif l[2]=="0":
+	titles = [track for track in l[0]]
 
 if len(titles)==0:
 	print('The playlist contains ' + str(l[1]) + ' songs and no duplicates.')
